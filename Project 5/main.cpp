@@ -1,0 +1,164 @@
+#include "PlaneFlight.h"
+#include "FrequentFlyerAccount.h"
+#include <iostream>
+#include <cassert>
+#include <string>
+using namespace std;
+
+int main() {
+    //  PlaneFlight flights
+    PlaneFlight flight1 ("Ryan", "LAX", "ORD", 300.00, 1745);
+    PlaneFlight flight2 ("Ryan", "LAX", "ORD", 0.00, 1745);
+    PlaneFlight flight3 ("Ryan", "LAX", "ORD", -100.00, -200);
+    PlaneFlight flight4 ("Ryan", "LAX", "ORD", 0.00, 0);
+    PlaneFlight flight5 ("", "LAX", "ORD", 300.00, 1745);
+    PlaneFlight flight6 ("Ryan", "", "", 300.00, 1745);
+    PlaneFlight flight7 ("Ryan", "LAX", "LAX", 300.00, 1745);
+    PlaneFlight flight8 ("Ryan", "LAX", "ORD", 300.00, 1745);
+    PlaneFlight freeFlightTest ("Bob", "SFO", "ICN", 604.00, 5659);
+
+    // check that all PlaneFlight getters work
+    assert (flight1.getName() == "Ryan");
+    assert (flight1.getFromCity() == "LAX");
+    assert (flight1.getToCity() == "ORD");
+    assert (to_string (flight1.getCost()) == "300.000000");
+    assert (to_string (flight1.getMileage()) == "1745.000000");
+
+    // check that cost of 0 is valid
+    assert (to_string (flight2.getCost()) == "0.000000");
+
+    // check that invalid mileage and cost are set to -1
+    assert (to_string (flight3.getCost()) == "-1.000000");
+    assert (to_string (flight3.getMileage()) == "-1.000000");
+    assert (to_string (flight4.getMileage()) == "-1.000000");
+
+    // check that invalid name, fromCity, or toCity are ignored
+    assert (flight5.getName() == "");
+    assert (flight6.getFromCity() == "");
+    assert (flight6.getToCity() == "");
+    assert (flight7.getFromCity() == "");
+    assert (flight7.getToCity() == "");
+
+    // checking that setters/mutators work
+    flight8.setName("Bryan");
+    assert (flight8.getName() == "Bryan");
+    flight8.setFromCity("SNA");
+    assert (flight8.getFromCity() == "SNA");
+    flight8.setToCity("MDW");
+    assert (flight8.getToCity() == "MDW");
+    flight8.setCost(350.00);
+    assert (to_string (flight8.getCost()) == "350.000000");
+    flight8.setMileage(1731);
+    assert (to_string (flight8.getMileage()) == "1731.000000");
+
+    // check that string setters will not do anything if invalid input
+    flight8.setName("");
+    assert (flight8.getName() == "Bryan");
+    flight8.setFromCity("");
+    assert (flight8.getFromCity() == "SNA");
+    flight8.setToCity("");
+    assert (flight8.getToCity() == "MDW");
+    flight8.setFromCity("MDW");
+    assert (flight8.getFromCity() == "SNA");
+    flight8.setToCity("SNA");
+    assert (flight8.getToCity() == "MDW");
+
+    // check that double setters will set to -1 if invalid input
+    flight8.setCost(-350.00);
+    assert (to_string (flight8.getCost()) == "-1.000000");
+    flight8.setMileage(0);
+    assert (to_string (flight8.getMileage()) == "-1.000000");
+    flight8.setMileage(1731); // set mileage back to original value
+    assert (to_string (flight8.getMileage()) == "1731.000000");
+    flight8.setMileage(-2); // re-set mileage to invalid input
+    assert (to_string (flight8.getMileage()) == "-1.000000");
+
+    // FrequentFlyerAccount accounts
+    FrequentFlyerAccount account1("Ryan");
+
+    // check that FrequentFlyerAccount getters work
+    assert (account1.getName() == "Ryan");
+    assert (to_string (account1.getBalance()) == "0.000000");
+
+    // adding a valid flight
+    assert (account1.addFlightToAccount(flight1) == true);
+    assert (to_string (account1.getBalance()) == "1745.000000");
+
+    // check that adding an invalid flight will return false and balance will not change
+    assert (account1.addFlightToAccount(flight2) == false); // invalid cost of 0
+    assert (to_string (account1.getBalance()) == "1745.000000"); 
+    assert (account1.addFlightToAccount(flight3) == false); // invalid cost and mileage
+    assert (to_string (account1.getBalance()) == "1745.000000");
+    assert (account1.addFlightToAccount(flight4) == false); // invalid mileage
+    assert (to_string (account1.getBalance()) == "1745.000000");
+    assert (account1.addFlightToAccount(flight5) == false); // invalid name (there is no name)
+    assert (to_string (account1.getBalance()) == "1745.000000");
+    assert (account1.addFlightToAccount(flight6) == false); // invalid fromCity and toCity (there is no fromCity and toCity)
+    assert (to_string (account1.getBalance()) == "1745.000000");
+    assert (account1.addFlightToAccount(flight7) == false); // invalid toCity (matches fromCity)
+    assert (to_string (account1.getBalance()) == "1745.000000");
+    assert (account1.addFlightToAccount(flight8) == false); // invalid name (was changed to Bryan)
+    assert (to_string (account1.getBalance()) == "1745.000000");
+
+    // checking canEarnFreeFlight
+    assert (account1.canEarnFreeFlight(0) == false); // mileage can't be <= 0
+    assert (account1.canEarnFreeFlight(2000) == false); // mileage is greater than balance
+    assert (account1.canEarnFreeFlight(1745) == true);
+
+    // checking freeFlight
+    assert (account1.freeFlight("LAX", "NRT", 5451, freeFlightTest) == false); // mileage is greater than balance
+        // check that freeFlightTest didn't change
+        assert (freeFlightTest.getName() == "Bob");
+        assert (freeFlightTest.getFromCity() == "SFO");
+        assert (freeFlightTest.getToCity() == "ICN");
+        assert (to_string (freeFlightTest.getCost()) == "604.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "5659.000000");
+    assert (account1.freeFlight("LAX", "NRT", 0, freeFlightTest) == false); // mileage is <= 0
+        // check that freeFlightTest didn't change
+        assert (freeFlightTest.getName() == "Bob");
+        assert (freeFlightTest.getFromCity() == "SFO");
+        assert (freeFlightTest.getToCity() == "ICN");
+        assert (to_string (freeFlightTest.getCost()) == "604.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "5659.000000");
+    assert (account1.freeFlight("", "OAK", 371, freeFlightTest) == false); // fromCity is empty
+        // check that freeFlightTest didn't change
+        assert (freeFlightTest.getName() == "Bob");
+        assert (freeFlightTest.getFromCity() == "SFO");
+        assert (freeFlightTest.getToCity() == "ICN");
+        assert (to_string (freeFlightTest.getCost()) == "604.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "5659.000000");
+    assert (account1.freeFlight("SNA", "", 371, freeFlightTest) == false); // toCity is empty
+        // check that freeFlightTest didn't change
+        assert (freeFlightTest.getName() == "Bob");
+        assert (freeFlightTest.getFromCity() == "SFO");
+        assert (freeFlightTest.getToCity() == "ICN");
+        assert (to_string (freeFlightTest.getCost()) == "604.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "5659.000000");
+    assert (account1.freeFlight("SNA", "SNA", 371, freeFlightTest) == false); // fromCity = toCity
+        // check that freeFlightTest didn't change
+        assert (freeFlightTest.getName() == "Bob");
+        assert (freeFlightTest.getFromCity() == "SFO");
+        assert (freeFlightTest.getToCity() == "ICN");
+        assert (to_string (freeFlightTest.getCost()) == "604.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "5659.000000");
+    assert (account1.freeFlight("", "", 371, freeFlightTest) == false); // both are empty
+        // check that freeFlightTest didn't change
+        assert (freeFlightTest.getName() == "Bob");
+        assert (freeFlightTest.getFromCity() == "SFO");
+        assert (freeFlightTest.getToCity() == "ICN");
+        assert (to_string (freeFlightTest.getCost()) == "604.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "5659.000000");
+    assert (account1.freeFlight("SNA", "OAK", 371, freeFlightTest) == true);
+        // check that freeFlightTest DID change
+        assert (freeFlightTest.getName() == "Ryan");
+        assert (freeFlightTest.getFromCity() == "SNA");
+        assert (freeFlightTest.getToCity() == "OAK");
+        assert (to_string (freeFlightTest.getCost()) == "0.000000");
+        assert (to_string (freeFlightTest.getMileage()) == "371.000000");
+        // check that balance has been updated accordingly
+        assert (to_string (account1.getBalance()) == "1374.000000");
+
+    cerr << "All asserts passed";
+    
+    return 0;
+}
